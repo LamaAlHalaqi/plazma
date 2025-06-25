@@ -36,7 +36,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/profile', [ProfileController::class, 'updateProfile']);
     Route::middleware( 'admin')->group(function () {
     Route::get('/admin/dashboard', function () {
-        return response()->json(['message' => 'Welcome to Admin Dashboard !!']);
+        return response()->json(['message' => '1-Welcome to Admin Dashboard !!']);
     });
 });
 
