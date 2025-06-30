@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Service;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
-
+use Illuminate\Support\Facades\Storage;
 class ServiceController extends Controller
 {
     // عرض كل الخدمات مع القسم التابع
@@ -132,7 +132,7 @@ class ServiceController extends Controller
 
         if ($request->hasFile('icon')) {
             if ($service->icon) {
-                \Storage::delete('public/services/' . $service->icon);
+                Storage::delete('public/services/' . $service->icon);
             }
 
             $image = $request->file('icon');
@@ -174,7 +174,7 @@ class ServiceController extends Controller
         }
 
         if ($service->icon) {
-            \Storage::delete('public/services/' . $service->icon);
+            Storage::delete('public/services/' . $service->icon);
         }
 
         $service->delete();

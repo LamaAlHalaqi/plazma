@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Department;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
-
+use Illuminate\Support\Facades\Storage;
 class DepartmentController extends Controller
 {
     // عرض كل الأقسام فقط
@@ -26,7 +26,8 @@ class DepartmentController extends Controller
     public function store(Request $request)
     {
         // تحقق من صلاحية المستخدم قبل أي شيء
-        if (auth()->user()->role !== 'admin') {
+        /** @var User $user */
+        if ($request->user()->role !== 'admin') {
             return response()->json([
                 'status' => 'error',
                 'code' => 403,
@@ -115,7 +116,7 @@ class DepartmentController extends Controller
 
         if ($request->hasFile('icon')) {
             if ($department->icon) {
-                \Storage::delete('public/departments/' . $department->icon);
+                Storage::delete('public/departments/' . $department->icon);
             }
 
             $image = $request->file('icon');
@@ -157,7 +158,7 @@ class DepartmentController extends Controller
         }
 
         if ($department->icon) {
-            \Storage::delete('public/departments/' . $department->icon);
+            Storage::delete('public/departments/' . $department->icon);
         }
 
         $department->delete();
