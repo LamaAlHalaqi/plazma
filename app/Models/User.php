@@ -19,14 +19,17 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $fillable = [
-        'name',
-        'email',
-        'password',
-        'phone',
-        'gender',
-        'image',
-        'profile_image',
-        'otp'
+
+           'name',
+           'email',
+           'password',
+           'otp',
+           'is_verified',
+           'address',
+           'points',
+           'profile_picture',
+
+
     ];
 
     /**
@@ -53,13 +56,10 @@ class User extends Authenticatable
         ];
     }
 
+
     public function reservations()
     {
         return $this->hasMany(Reservation::class);
-    }
-    public function points()
-    {
-        return $this->hasOne(Point::class);
     }
 
     public function services()
@@ -80,4 +80,11 @@ class User extends Authenticatable
     {
         return $this->hasMany(ProductOrder::class);
     }
+
+
+    public function favoriteServices()
+    {
+        return $this->belongsToMany(Service::class, 'favorites')->withTimestamps();
+    }
+
 }

@@ -9,14 +9,21 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function up(): void
+
+
+        public function up(): void
     {
         Schema::create('employees', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('department_id');
-            $table->foreign('department_id')->references('id')->on('departments')->onDelete('cascade');
-
+            $table->string('name');
+            $table->string('email')->unique();
+            $table->string('phone');
+            $table->time('work_start_time');
+            $table->time('work_end_time');
             $table->timestamps();
+
+            $table->foreign('department_id')->references('id')->on('departments')->onDelete('cascade');
         });
     }
 

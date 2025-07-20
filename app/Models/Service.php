@@ -10,15 +10,16 @@ class Service extends Model
     use HasFactory;
 
     protected $fillable =[
-        'department_id','name','description','price','points','duration','icon'
+        'department_id','name','description','price','points','points_cost','duration','icon'
     ];
-
+// accessor لإرجاع رابط الصورة
+    public function getIconUrlAttribute()
+    {
+        return $this->icon ? asset('storage/services/' . $this->icon) : null;
+    }
 
     public function department()
     {
-
-
-
         return $this->belongsTo(Department::class);
     }
 
@@ -31,4 +32,17 @@ class Service extends Model
     {
         return $this->belongsToMany(User::class);
     }
+
+    public function favoredByUsers()
+    {
+        return $this->belongsToMany(User::class, 'favorites')->withTimestamps();
+    }
+
+
+    public function reservations()
+    {
+        return $this->hasMany(Reservation::class);
+    }
+
 }
+

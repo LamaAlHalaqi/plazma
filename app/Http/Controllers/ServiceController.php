@@ -5,13 +5,14 @@ namespace App\Http\Controllers;
 use App\Models\Service;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Illuminate\Support\Str;
 
 class ServiceController extends Controller
 {
-    // عرض كل الخدمات مع القسم التابع
     public function index()
     {
         $services = Service::with('department')->get();
+        $services->each->append('icon_url');
 
         return response()->json([
             'status' => 'success',
@@ -21,10 +22,8 @@ class ServiceController extends Controller
         ], Response::HTTP_OK);
     }
 
-    // إضافة خدمة جديدة
     public function store(Request $request)
     {
-        // تحقق من صلاحية المستخدم قبل أي شيء
         if ($request->user()->role !== 'admin') {
             return response()->json([
                 'status' => 'error',
@@ -33,30 +32,26 @@ class ServiceController extends Controller
             ], Response::HTTP_FORBIDDEN);
         }
 
-        // تحقق من صحة البيانات
         $request->validate([
             'department_id' => 'required|exists:departments,id',
             'name' => 'required|string|max:255|unique:services,name',
             'description' => 'nullable|string',
             'price' => 'required|numeric',
             'points' => 'nullable|integer',
+            'points_cost' => 'required|integer',
             'duration' => 'nullable|integer',
             'icon' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
         ]);
 
         $serviceData = $request->only([
-            'department_id',
-            'name',
-            'description',
-            'price',
-            'points',
-            'duration'
+            'department_id', 'name', 'description', 'price',
+            'points', 'points_cost', 'duration'
         ]);
 
         if ($request->hasFile('icon')) {
             $image = $request->file('icon');
-            $imageName = time() . '.' . $image->getClientOriginalExtension();
-            $image->storeAs('public/services', $imageName);
+            $imageName = Str::uuid() . '.' . $image->getClientOriginalExtension();
+            $image->storeAs('services', $imageName);
             $serviceData['icon'] = $imageName;
         }
 
@@ -65,12 +60,12 @@ class ServiceController extends Controller
         return response()->json([
             'status' => 'success',
             'code' => 201,
-            'data' => $service,
+            'data' => $service->fresh()->append('icon_url'),
             'message' => 'تم إنشاء الخدمة بنجاح'
         ], Response::HTTP_CREATED);
     }
 
-    // عرض تفاصيل خدمة محددة مع القسم التابع
+
     public function show($id)
     {
         $service = Service::with('department')->find($id);
@@ -83,6 +78,8 @@ class ServiceController extends Controller
             ], Response::HTTP_NOT_FOUND);
         }
 
+        $service->append('icon_url');
+
         return response()->json([
             'status' => 'success',
             'code' => 200,
@@ -91,70 +88,67 @@ class ServiceController extends Controller
         ], Response::HTTP_OK);
     }
 
-    // تعديل خدمة
     public function update(Request $request, $id)
-    {
-        // تحقق من أن المستخدم أدمن
-        if ($request->user()->role !== 'admin') {
-            return response()->json([
-                'status' => 'error',
-                'code' => 403,
-                'message' => 'ليس لديك صلاحية تعديل الخدمات'
-            ], Response::HTTP_FORBIDDEN);
-        }
-
-        $service = Service::find($id);
-
-        if (!$service) {
-            return response()->json([
-                'status' => 'error',
-                'code' => 404,
-                'message' => 'الخدمة غير موجودة'
-            ], Response::HTTP_NOT_FOUND);
-        }
-
-        $request->validate([
-            'department_id' => 'required|exists:departments,id',
-            'name' => 'required|string|max:255|unique:services,name,' . $id,
-            'description' => 'nullable|string',
-            'price' => 'required|numeric',
-            'points' => 'nullable|integer',
-            'duration' => 'nullable|integer',
-            'icon' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
-        ]);
-
-        $service->department_id = $request->department_id;
-        $service->name = $request->name;
-        $service->description = $request->description ?? $service->description;
-        $service->price = $request->price;
-        $service->points = $request->points ?? $service->points;
-        $service->duration = $request->duration ?? $service->duration;
-
-        if ($request->hasFile('icon')) {
-            if ($service->icon) {
-                \Storage::delete('public/services/' . $service->icon);
-            }
-
-            $image = $request->file('icon');
-            $imageName = time() . '.' . $image->getClientOriginalExtension();
-            $image->storeAs('public/services', $imageName);
-            $service->icon = $imageName;
-        }
-
-        $service->save();
-
+{
+    if ($request->user()->role !== 'admin') {
         return response()->json([
-            'status' => 'success',
-            'code' => 200,
-            'data' => $service,
-            'message' => 'تم تعديل الخدمة بنجاح'
-        ], Response::HTTP_OK);
+            'status' => 'error',
+            'code' => 403,
+            'message' => 'ليس لديك صلاحية تعديل الخدمات'
+        ], Response::HTTP_FORBIDDEN);
     }
 
-    // حذف خدمة
+    $service = Service::find($id);
+
+    if (!$service) {
+        return response()->json([
+            'status' => 'error',
+            'code' => 404,
+            'message' => 'الخدمة غير موجودة'
+        ], Response::HTTP_NOT_FOUND);
+    }
+
+    $request->validate([
+        'department_id' => 'required|exists:departments,id',
+        'name' => 'required|string|max:255|unique:services,name,' . $id,
+        'description' => 'nullable|string',
+        'price' => 'required|numeric',
+        'points' => 'nullable|integer',
+        'points_cost' => 'required|integer',
+        'duration' => 'nullable|integer',
+        'icon' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
+    ]);
+
+    $service->fill($request->only([
+        'department_id', 'name', 'description', 'price',
+        'points', 'points_cost', 'duration'
+    ]));
+
+    if ($request->hasFile('icon')) {
+        // حذف الصورة القديمة
+        if ($service->icon) {
+            \Storage::delete('public/services/' . $service->icon);
+        }
+
+        $image = $request->file('icon');
+        $imageName = Str::uuid() . '.' . $image->getClientOriginalExtension();
+        $image->storeAs('public/services', $imageName);
+        $service->icon = $imageName;
+    }
+
+    $service->save();
+
+    return response()->json([
+        'status' => 'success',
+        'code' => 200,
+        'data' => $service->fresh()->append('icon_url'),
+        'message' => 'تم تعديل الخدمة بنجاح'
+    ], Response::HTTP_OK);
+}
+
+
     public function destroy(Request $request, $id)
     {
-        // تحقق من أن المستخدم أدمن
         if ($request->user()->role !== 'admin') {
             return response()->json([
                 'status' => 'error',
@@ -186,7 +180,6 @@ class ServiceController extends Controller
         ], Response::HTTP_OK);
     }
 
-    // بحث في الخدمات
     public function search(Request $request)
     {
         $request->validate([
@@ -199,6 +192,8 @@ class ServiceController extends Controller
             ->orWhere('description', 'LIKE', "%{$searchText}%")
             ->with('department')
             ->get();
+
+        $services->each->append('icon_url');
 
         if ($services->isEmpty()) {
             return response()->json([

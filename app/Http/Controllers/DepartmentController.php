@@ -1,9 +1,11 @@
 <?php
 
+
 namespace App\Http\Controllers;
 
 use App\Models\Department;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\Response;
 
 class DepartmentController extends Controller
@@ -13,6 +15,11 @@ class DepartmentController extends Controller
     {
         $departments = Department::all();
 
+        $departments->transform(function ($department) {
+            $department->icon_url = $department->icon ? Storage::url('departments/' . $department->icon) : null;
+            return $department;
+        });
+
         return response()->json([
             'status' => 'success',
             'code' => 200,
@@ -21,12 +28,11 @@ class DepartmentController extends Controller
         ], Response::HTTP_OK);
     }
 
-// إضافة قسم جديد
-
+    // إضافة قسم جديد
     public function store(Request $request)
     {
-        // تحقق من صلاحية المستخدم قبل أي شيء
-        if (auth()->user()->role !== 'admin') {
+        // تأكد من صلاحية المستخدم
+        if ($request->user()->role !== 'admin') {
             return response()->json([
                 'status' => 'error',
                 'code' => 403,
@@ -34,24 +40,24 @@ class DepartmentController extends Controller
             ], Response::HTTP_FORBIDDEN);
         }
 
-        // تحقق من صحة البيانات
         $request->validate([
             'name' => 'required|string|max:255|unique:departments,name',
             'icon' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
         ]);
 
-        // إنشاء القسم
         $department = new Department();
         $department->name = $request->name;
 
         if ($request->hasFile('icon')) {
             $image = $request->file('icon');
             $imageName = time() . '.' . $image->getClientOriginalExtension();
-            $image->storeAs('public/departments', $imageName);
+            $image->storeAs('departments', $imageName);
             $department->icon = $imageName;
         }
 
         $department->save();
+
+        $department->icon_url = $department->icon ? Storage::url('departments/' . $department->icon) : null;
 
         return response()->json([
             'status' => 'success',
@@ -61,8 +67,7 @@ class DepartmentController extends Controller
         ], Response::HTTP_CREATED);
     }
 
-
-// عرض قسم محدد مع خدماته
+    // عرض قسم محدد مع خدماته
     public function show($id)
     {
         $department = Department::with('services')->find($id);
@@ -75,6 +80,8 @@ class DepartmentController extends Controller
             ], Response::HTTP_NOT_FOUND);
         }
 
+        $department->icon_url = $department->icon ? Storage::url('departments/' . $department->icon) : null;
+
         return response()->json([
             'status' => 'success',
             'code' => 200,
@@ -84,10 +91,8 @@ class DepartmentController extends Controller
     }
 
     // تعديل قسم
-
     public function update(Request $request, $id)
     {
-        // تحقق من أن المستخدم أدمن
         if ($request->user()->role !== 'admin') {
             return response()->json([
                 'status' => 'error',
@@ -115,7 +120,7 @@ class DepartmentController extends Controller
 
         if ($request->hasFile('icon')) {
             if ($department->icon) {
-                \Storage::delete('public/departments/' . $department->icon);
+                Storage::delete('public/departments/' . $department->icon);
             }
 
             $image = $request->file('icon');
@@ -126,6 +131,8 @@ class DepartmentController extends Controller
 
         $department->save();
 
+        $department->icon_url = $department->icon ? Storage::url('departments/' . $department->icon) : null;
+
         return response()->json([
             'status' => 'success',
             'code' => 200,
@@ -134,10 +141,9 @@ class DepartmentController extends Controller
         ], Response::HTTP_OK);
     }
 
-// حذف قسم
+    // حذف قسم
     public function destroy(Request $request, $id)
     {
-        // تحقق من أن المستخدم أدمن
         if ($request->user()->role !== 'admin') {
             return response()->json([
                 'status' => 'error',
@@ -157,7 +163,7 @@ class DepartmentController extends Controller
         }
 
         if ($department->icon) {
-            \Storage::delete('public/departments/' . $department->icon);
+            Storage::delete('public/departments/' . $department->icon);
         }
 
         $department->delete();

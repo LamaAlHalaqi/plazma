@@ -19,6 +19,7 @@ return new class extends Migration
             $table->foreign('service_id')->references('id')->on('services')->onDelete('cascade');
 
             $table->primary(['user_id', 'service_id']);
+            $table->timestamps();
 
 
         });
@@ -30,5 +31,12 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('favorites');
+
+        Schema::table('favorites', function (Blueprint $table) {
+            $table->dropTimestamps();
+        });
     }
+
+
+
 };

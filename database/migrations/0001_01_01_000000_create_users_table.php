@@ -24,6 +24,9 @@ return new class extends Migration
             $table->string('gender')->nullable();
 
             $table->string('profile_image')->nullable();
+            $table->string('address')->nullable()->after('profile_image');
+            $table->integer('points')->default(0)->after('address');
+
             $table->string('otp')->nullable();
             $table->boolean('is_verified')->default(false);
             $table->timestamps();
@@ -62,5 +65,12 @@ return new class extends Migration
             $table->dropColumn('role');
 
         });
+
+        Schema::table('users', function (Blueprint $table) {
+            $table->dropColumn(['address', 'points']);
+        });
+
+
+
     }
 };
