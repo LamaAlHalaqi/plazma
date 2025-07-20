@@ -13,9 +13,8 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule): void
     {
         // جدولة حذف العروض المنتهية مرة يومياً عند منتصف الليل
-       // $schedule->command('app:delete-expired-offers')->dailyAt('00:00');
+        // $schedule->command('app:delete-expired-offers')->dailyAt('00:00');
         $schedule->command('app:delete-expired-offers')->everyMinute();
-
     }
 
     /**
