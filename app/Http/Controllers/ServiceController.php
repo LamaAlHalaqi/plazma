@@ -51,7 +51,8 @@ class ServiceController extends Controller
         if ($request->hasFile('icon')) {
             $image = $request->file('icon');
             $imageName = Str::uuid() . '.' . $image->getClientOriginalExtension();
-            $image->storeAs('services', $imageName);
+            $image->storeAs('services', $imageName, 'public');
+
             $serviceData['icon'] = $imageName;
         }
 
@@ -89,62 +90,63 @@ class ServiceController extends Controller
     }
 
     public function update(Request $request, $id)
-{
-    if ($request->user()->role !== 'admin') {
-        return response()->json([
-            'status' => 'error',
-            'code' => 403,
-            'message' => 'ليس لديك صلاحية تعديل الخدمات'
-        ], Response::HTTP_FORBIDDEN);
-    }
-
-    $service = Service::find($id);
-
-    if (!$service) {
-        return response()->json([
-            'status' => 'error',
-            'code' => 404,
-            'message' => 'الخدمة غير موجودة'
-        ], Response::HTTP_NOT_FOUND);
-    }
-
-    $request->validate([
-        'department_id' => 'required|exists:departments,id',
-        'name' => 'required|string|max:255|unique:services,name,' . $id,
-        'description' => 'nullable|string',
-        'price' => 'required|numeric',
-        'points' => 'nullable|integer',
-        'points_cost' => 'required|integer',
-        'duration' => 'nullable|integer',
-        'icon' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
-    ]);
-
-    $service->fill($request->only([
-        'department_id', 'name', 'description', 'price',
-        'points', 'points_cost', 'duration'
-    ]));
-
-    if ($request->hasFile('icon')) {
-        // حذف الصورة القديمة
-        if ($service->icon) {
-            \Storage::delete('public/services/' . $service->icon);
+    {
+        if ($request->user()->role !== 'admin') {
+            return response()->json([
+                'status' => 'error',
+                'code' => 403,
+                'message' => 'ليس لديك صلاحية تعديل الخدمات'
+            ], Response::HTTP_FORBIDDEN);
         }
 
-        $image = $request->file('icon');
-        $imageName = Str::uuid() . '.' . $image->getClientOriginalExtension();
-        $image->storeAs('public/services', $imageName);
-        $service->icon = $imageName;
+        $service = Service::find($id);
+
+        if (!$service) {
+            return response()->json([
+                'status' => 'error',
+                'code' => 404,
+                'message' => 'الخدمة غير موجودة'
+            ], Response::HTTP_NOT_FOUND);
+        }
+
+        $request->validate([
+            'department_id' => 'required|exists:departments,id',
+            'name' => 'required|string|max:255|unique:services,name,' . $id,
+            'description' => 'nullable|string',
+            'price' => 'required|numeric',
+            'points' => 'nullable|integer',
+            'points_cost' => 'required|integer',
+            'duration' => 'nullable|integer',
+            'icon' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
+        ]);
+
+        $service->fill($request->only([
+            'department_id', 'name', 'description', 'price',
+            'points', 'points_cost', 'duration'
+        ]));
+
+        if ($request->hasFile('icon')) {
+            // حذف الصورة القديمة
+            if ($service->icon) {
+                \Storage::delete('public/services/' . $service->icon);
+            }
+
+
+            $image = $request->file('icon');
+            $imageName = Str::uuid() . '.' . $image->getClientOriginalExtension();
+            $image->storeAs('public/services', $imageName);
+            $service->icon = $imageName;
+        }
+
+        $service->save();
+
+        return response()->json([
+            'status' => 'success',
+            'code' => 200,
+            'data' => $service->fresh()->append('icon_url'),
+            'message' => 'تم تعديل الخدمة بنجاح'
+        ], Response::HTTP_OK);
     }
-
-    $service->save();
-
-    return response()->json([
-        'status' => 'success',
-        'code' => 200,
-        'data' => $service->fresh()->append('icon_url'),
-        'message' => 'تم تعديل الخدمة بنجاح'
-    ], Response::HTTP_OK);
-}
 
 
     public function destroy(Request $request, $id)

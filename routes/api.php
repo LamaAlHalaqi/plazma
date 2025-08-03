@@ -89,6 +89,8 @@ use App\Http\Controllers\ReservationController;
 Route::middleware('auth:sanctum')->post('/reservations/employees',  [ReservationController::class, 'getAvailableEmployees']);
 Route::middleware('auth:sanctum')->post('/reservations', [ReservationController::class, 'store']);
 Route::middleware('auth:sanctum')->get('/reservations', [ReservationController::class, 'index']);
+Route::middleware('auth:sanctum')->post('reservations/{id}/confirm', [ReservationController::class, 'confirm']);
+Route::middleware('auth:sanctum')->post('reservations/{id}/cancel', [ReservationController::class, 'cancel']);
 
 Route::middleware('auth:sanctum')->post('/employees', [EmployeeController::class, 'store']);
 
