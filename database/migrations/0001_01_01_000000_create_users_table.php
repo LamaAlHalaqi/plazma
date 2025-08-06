@@ -24,8 +24,8 @@ return new class extends Migration
             $table->string('gender')->nullable();
 
             $table->string('profile_image')->nullable();
-            $table->string('address')->nullable()->after('profile_image');
-            $table->integer('points')->default(0)->after('address');
+            $table->string('address')->nullable();
+            $table->integer('points')->default(0);
 
             $table->string('otp')->nullable();
             $table->boolean('is_verified')->default(false);

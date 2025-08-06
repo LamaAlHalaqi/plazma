@@ -6,29 +6,22 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('payments', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('reservation_id')->nullable();
             $table->foreign('reservation_id')->references('id')->on('reservations')->onDelete('cascade');
-
-            $table->unsignedBigInteger('product_order_id')->unique();
+            $table->unsignedBigInteger('product_order_id')->nullable()->unique();
             $table->foreign('product_order_id')->references('id')->on('product_orders')->onDelete('cascade');
-
-
-
-
+            $table->string('payment_method')->default('online');
+            $table->decimal('amount', 10, 2)->default(0);
+            $table->string('receipt_path')->nullable();
+            $table->enum('status', ['pending', 'confirmed', 'rejected'])->default('pending');
             $table->timestamps();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('payments');

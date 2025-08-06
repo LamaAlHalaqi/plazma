@@ -2,15 +2,20 @@
 
 use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\EmployeeController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OfferController;
 use App\Http\Controllers\ServiceController;
+use App\Models\Reservation;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\HelloController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\PasswordResetController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\AdminController;
+use App\Notifications\ReservationConfirmed;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -91,9 +96,10 @@ Route::middleware('auth:sanctum')->post('/reservations', [ReservationController:
 Route::middleware('auth:sanctum')->get('/reservations', [ReservationController::class, 'index']);
 Route::middleware('auth:sanctum')->post('reservations/{id}/confirm', [ReservationController::class, 'confirm']);
 Route::middleware('auth:sanctum')->post('reservations/{id}/cancel', [ReservationController::class, 'cancel']);
-
+Route::middleware('auth:sanctum')->post('/reservations/{id}/admin-confirm-payment', [ReservationController::class, 'adminConfirmPayment']);
 Route::middleware('auth:sanctum')->post('/employees', [EmployeeController::class, 'store']);
-
 Route::middleware('auth:sanctum')->delete('/employees/{id}', [EmployeeController::class, 'deleteEmployee']);
 Route::middleware('auth:sanctum')->put('/employees/{id}', [EmployeeController::class, 'updateEmployee']);
 Route::middleware('auth:sanctum')->get('/employees', [EmployeeController::class, 'index']);
+Route::middleware('auth:sanctum')->get('/notifications', [ReservationController::class, 'getNotifications']);
+

@@ -17,7 +17,7 @@ return new class extends Migration
         $table->dateTime('start_datetime'); // تاريخ ووقت بداية العرض
         $table->dateTime('end_datetime');   // تاريخ ووقت نهاية العرض
         $table->text('description')->nullable(); // وصف العرض
-        $table->string('image')->nullable()->after('description');
+        $table->string('image')->nullable();
         $table->integer('points')->default(0); // النقاط المكتسبة عند الحجز
         $table->timestamps();
     });
@@ -30,9 +30,8 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('offers');
-        Schema::table('offers', function (Blueprint $table) {
-            $table->dropColumn('image');
-        });
+
+
 
 
 

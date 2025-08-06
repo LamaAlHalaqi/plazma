@@ -26,7 +26,7 @@ class AuthController extends Controller
         'otp'             => $otp,
         'address'         => '',                 // فارغة مبدئياً
         'points'          => 0,                  // نقاط مبدئية
-        'profile_picture' => asset('uploads/profiles/default.png'),
+        'profile_image' => asset('uploads/profiles/default.png'),
     ]);
 
     // إرسال OTP إلى البريد
